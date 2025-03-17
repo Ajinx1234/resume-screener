@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Uploader</title>  
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        .file-upload {
+            display: inline-block;
+            padding: 10px;
+            border: 2px solid #007BFF;
+            background-color: #f8f9fa;
+            cursor: pointer;
+        }
+        .hidden {
+            display: none;
+        }
+        #file-name {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #007BFF;
+        }
+        #upload-button {
+            margin-top: 10px;
+            padding: 10px 15px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: none;
+        }
+        #success-message {
+            display: none;
+            color: green;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Upload Resume</h2>
+    <div id="upload-section">
+        <label class="file-upload">
+            Choose File
+            <input type="file" id="chooseFile" class="hidden">
+        </label>
+        <p id="file-name">No file chosen...</p>
+        <button id="upload-button">Upload</button>
+    </div>
+
+    <p id="success-message">✅ File uploaded successfully. Processing in background...</p>
+
+    <script>
+        $(document).ready(function() {
+            $("#chooseFile").change(function() {
+                var file = this.files[0];
+                if (file) {
+                    $("#file-name").text(file.name);
+                    $("#upload-button").show();
+                } else {
+                    $("#file-name").text("No file chosen...");
+                    $("#upload-button").hide();
+                }
+            });
+
+            $("#upload-button").click(function() {
+                var fileInput = document.getElementById("chooseFile");
+                var file = fileInput.files[0];
+
+                if (!file) {
+                    alert("Please select a file first!");
+                    return;
+                }
+
+                var formData = new FormData();
+                formData.append("file", file);
+
+                // Show success message and hide upload UI
+                $("#upload-section").hide();
+                $("#success-message").show();
+
+                // Send file to backend
+                fetch("http://127.0.0.1:5000/upload", {
+                    method: "POST",
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert("Error: " + data.error);
+                    } else {
+                        console.log("Processing completed:", data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error("Upload Error:", error);
+                })
+                .finally(() => {
+                    // Restore upload section after processing
+                    setTimeout(() => {
+                        $("#upload-section").show();
+                        $("#success-message").hide();
+                        $("#file-name").text("No file chosen...");
+                        $("#upload-button").hide();
+                        $("#chooseFile").val(""); // Reset file input
+                    }, 3000); // Adjust delay if needed
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>
+
