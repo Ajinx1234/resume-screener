@@ -18,7 +18,7 @@ PROCESSED_BUCKET_NAME = os.getenv("S3_STRUCTURED_DATA_BUCKET")
 
 # Initialize Flask app
 app = Flask(__name__, static_folder="frontend", static_url_path="")
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})  # Allow all origins
 
 # Serve frontend files
 @app.route("/")
