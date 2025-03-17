@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import os
 import boto3
@@ -17,11 +17,13 @@ TEXT_BUCKET_NAME = os.getenv("S3_EXTRACTED_TEXT_BUCKET")
 PROCESSED_BUCKET_NAME = os.getenv("S3_STRUCTURED_DATA_BUCKET")
 
 # Initialize Flask app
-app = Flask(__name__)
+app = Flask(__name__, static_folder="frontend", static_url_path="")
 CORS(app)
 
-# Initialize AWS S3 client
-s3_client = boto3.client("s3", aws_access_key_id=AWS_ACCESS_KEY, aws_secret_access_key=AWS_SECRET_KEY)
+# Serve frontend files
+@app.route("/")
+def index():
+    return send_from_directory("frontend", "index.html")
 
 @app.route("/upload", methods=["POST"])
 def upload_resume():
@@ -37,6 +39,7 @@ def upload_resume():
             return jsonify({"error": "Invalid file name"}), 400
 
         # Upload to S3
+        s3_client = boto3.client("s3", aws_access_key_id=AWS_ACCESS_KEY, aws_secret_access_key=AWS_SECRET_KEY)
         s3_client.upload_fileobj(file, BUCKET_NAME, file_name)
         print(f"✅ File uploaded to S3: {file_name}")
 
